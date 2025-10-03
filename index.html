@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html data-filename="pages/Workflow" data-linenumber="58" data-visual-selector-id="pages/Workflow58" lang="en">
+<head data-filename="pages/Workflow" data-linenumber="59" data-visual-selector-id="pages/Workflow59">
+    <meta data-filename="pages/Workflow" data-linenumber="60" data-visual-selector-id="pages/Workflow60" charset="UTF-8">
+    <meta data-filename="pages/Workflow" data-linenumber="61" data-visual-selector-id="pages/Workflow61" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-filename="pages/Workflow" data-linenumber="62" data-visual-selector-id="pages/Workflow62">BeelzeFlow - Daily Workflow Manager</title>
+    <style data-filename="pages/Workflow" data-linenumber="63" data-visual-selector-id="pages/Workflow63">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 200px; /* Added padding for fixed performance tracker */
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+        .btn-add {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        .btn-add:hover {
+            background: #334155;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 41, 59, 0.3);
+        }
+        .activities {
+            margin-bottom: 30px;
+        }
+        .activity-card {
+            background: #d1fae5;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer; /* Added cursor for expand functionality */
+        }
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+        }
+        .activity-card.completed {
+            opacity: 0.7;
+        }
+        .activity-header { /* New style for header of activity card */
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .activity-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            word-break: break-word; /* Allow long names to wrap */
+            flex: 1; /* Allow name to take available space */
+        }
+        .activity-card.completed .activity-name {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .chevron { /* New style for chevron icon */
+            transition: transform 0.3s;
+            margin-left: 8px;
+        }
+        .activity-card.expanded .chevron { /* Rotate chevron when expanded */
+            transform: rotate(180deg);
+        }
+        .activity-time {
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .activity-platform {
+            display: inline-flex; /* Changed to flex to align emoji */
+            align-items: center;
+            gap: 4px; /* Space between emoji and text */
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .activity-description { /* New style for description */
+            display: none; /* Hidden by default */
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(16, 185, 129, 0.2);
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            word-break: break-word; /* Allow long words to wrap */
+        }
+        .activity-card.expanded .activity-description { /* Show description when expanded */
+            display: block;
+        }
+        .activity-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 12px; /* Added margin to separate from description */
+        }
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .btn-action:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        .performance {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: fixed;
+            bottom: 20px;
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Center horizontally */
+            width: calc(100% - 40px); /* Adjust width to account for padding */
+            max-width: 500px;
+        }
+        .performance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .performance-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .performance-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .performance-percent {
+            font-size: 18px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        .performance-count {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .performance-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-label {
+            display: flex; /* Changed to flex to align icon and text */
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a1a2e;
+            font-size: 14px;
+        }
+        .form-input, .form-select, .form-textarea { /* Added textarea to this style */
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.2s;
+            font-family: inherit; /* Ensure textarea font matches */
+        }
+        .form-textarea { /* Specific styles for textarea */
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .icon-small { /* New style for smaller icons in labels */
+            width: 16px;
+            height: 16px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding-bottom: 180px; /* Adjust padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body data-filename="pages/Workflow" data-linenumber="370" data-visual-selector-id="pages/Workflow370">
+    <div data-filename="pages/Workflow" data-linenumber="371" data-visual-selector-id="pages/Workflow371" class="container">
+        <div data-filename="pages/Workflow" data-linenumber="372" data-visual-selector-id="pages/Workflow372" class="header">
+            <h1 data-filename="pages/Workflow" data-linenumber="373" data-visual-selector-id="pages/Workflow373">BeelzeFlow</h1>
+            <p data-filename="pages/Workflow" data-linenumber="374" data-visual-selector-id="pages/Workflow374">Manage your daily workflow and boost your productivity.</p>
+            <button data-filename="pages/Workflow" data-linenumber="375" data-visual-selector-id="pages/Workflow375" class="btn-add" onclick="openAddForm()">
+                <span data-filename="pages/Workflow" data-linenumber="376" data-visual-selector-id="pages/Workflow376" style="font-size: 20px; margin-right: 6px;">+</span> Add Activity
+            </button>
+        </div>
+
+        <div data-filename="pages/Workflow" data-linenumber="380" data-visual-selector-id="pages/Workflow380" class="activities" id="activitiesList"></div>
+
+        <div data-filename="pages/Workflow" data-linenumber="382" data-visual-selector-id="pages/Workflow382" class="performance">
+            <div data-filename="pages/Workflow" data-linenumber="383" data-visual-selector-id="pages/Workflow383" class="performance-header">
+                <span data-filename="pages/Workflow" data-linenumber="384" data-visual-selector-id="pages/Workflow384" class="performance-title">Peak Performance</span>
+                <div data-filename="pages/Workflow" data-linenumber="385" data-visual-selector-id="pages/Workflow385" class="performance-stats">
+                    <span data-filename="pages/Workflow" data-linenumber="386" data-visual-selector-id="pages/Workflow386" class="performance-percent" id="performancePercent">0%</span>
+                    <div data-filename="pages/Workflow" data-linenumber="387" data-visual-selector-id="pages/Workflow387">
+                        <div data-filename="pages/Workflow" data-linenumber="388" data-visual-selector-id="pages/Workflow388" class="performance-count"><span data-filename='pages/Workflow' data-linenumber='388' data-visual-selector-id='pages/Workflow388' id="completedCount">0</span>/<span data-filename='pages/Workflow' data-linenumber='388' data-visual-selector-id='pages/Workflow388' id="totalCount">0</span></div>
+                        <div data-filename="pages/Workflow" data-linenumber="389" data-visual-selector-id="pages/Workflow389" class="performance-label">Completed</div>
+                    </div>
+                </div>
+            </div>
+            <div data-filename="pages/Workflow" data-linenumber="393" data-visual-selector-id="pages/Workflow393" class="progress-bar">
+                <div data-filename="pages/Workflow" data-linenumber="394" data-visual-selector-id="pages/Workflow394" class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div data-filename="pages/Workflow" data-linenumber="399" data-visual-selector-id="pages/Workflow399" class="modal" id="activityModal">
+        <div data-filename="pages/Workflow" data-linenumber="400" data-visual-selector-id="pages/Workflow400" class="modal-content">
+            <h2 data-filename="pages/Workflow" data-linenumber="401" data-visual-selector-id="pages/Workflow401" style="margin-bottom: 24px; font-size: 24px;">Add Activity</h2>
+            <form data-filename="pages/Workflow" data-linenumber="402" data-visual-selector-id="pages/Workflow402" id="activityForm">
+                <div data-filename="pages/Workflow" data-linenumber="403" data-visual-selector-id="pages/Workflow403" class="form-group">
+                    <label data-filename="pages/Workflow" data-linenumber="404" data-visual-selector-id="pages/Workflow404" class="form-label">
+                        <svg data-filename="pages/Workflow" data-linenumber="405" data-visual-selector-id="pages/Workflow405" class="icon icon-small" viewBox="0 0 24 24"><rect data-filename='pages/Workflow' data-linenumber='405' data-visual-selector-id='pages/Workflow405' x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path data-filename='pages/Workflow' data-linenumber='405' data-visual-selector-id='pages/Workflow405' d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        Name of Work
+                    </label>
+                    <input data-filename="pages/Workflow" data-linenumber="408" data-visual-selector-id="pages/Workflow408" type="text" class="form-input" id="activityName" required>
+                </div>
+                <div data-filename="pages/Workflow" data-linenumber="410" data-visual-selector-id="pages/Workflow410" class="form-group">
+                    <label data-filename="pages/Workflow" data-linenumber="411" data-visual-selector-id="pages/Workflow411" class="form-label">
+                        <svg data-filename="pages/Workflow" data-linenumber="412" data-visual-selector-id="pages/Workflow412" class="icon icon-small" viewBox="0 0 24 24"><circle data-filename='pages/Workflow' data-linenumber='412' data-visual-selector-id='pages/Workflow412' cx="12" cy="12" r="10"></circle><polyline data-filename='pages/Workflow' data-linenumber='412' data-visual-selector-id='pages/Workflow412' points="12 6 12 12 16 14"></polyline></svg>
+                        Time
+                    </label>
+                    <input data-filename="pages/Workflow" data-linenumber="415" data-visual-selector-id="pages/Workflow415" type="time" class="form-input" id="activityTime" required> <!-- Changed to type="time" -->
+                </div>
+                <div data-filename="pages/Workflow" data-linenumber="417" data-visual-selector-id="pages/Workflow417" class="form-group">
+                    <label data-filename="pages/Workflow" data-linenumber="418" data-visual-selector-id="pages/Workflow418" class="form-label">
+                        <svg data-filename="pages/Workflow" data-linenumber="419" data-visual-selector-id="pages/Workflow419" class="icon icon-small" viewBox="0 0 24 24"><circle data-filename='pages/Workflow' data-linenumber='419' data-visual-selector-id='pages/Workflow419' cx="18" cy="5" r="3"></circle><circle data-filename='pages/Workflow' data-linenumber='419' data-visual-selector-id='pages/Workflow419' cx="6" cy="12" r="3"></circle><circle data-filename='pages/Workflow' data-linenumber='419' data-visual-selector-id='pages/Workflow419' cx="18" cy="19" r="3"></circle><line data-filename='pages/Workflow' data-linenumber='419' data-visual-selector-id='pages/Workflow419' x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line data-filename='pages/Workflow' data-linenumber='419' data-visual-selector-id='pages/Workflow419' x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        Platform
+                    </label>
+                    <select data-filename="pages/Workflow" data-linenumber="422" data-visual-selector-id="pages/Workflow422" class="form-select" id="activityPlatform">
+                        <option data-filename="pages/Workflow" data-linenumber="423" data-visual-selector-id="pages/Workflow423" value="Personal">👤 Personal</option>
+                        <option data-filename="pages/Workflow" data-linenumber="424" data-visual-selector-id="pages/Workflow424" value="Work">🏢 Work</option>
+                        <option data-filename="pages/Workflow" data-linenumber="425" data-visual-selector-id="pages/Workflow425" value="Fitness">💪 Fitness</option>
+                        <option data-filename="pages/Workflow" data-linenumber="426" data-visual-selector-id="pages/Workflow426" value="Learning">📚 Learning</option>
+                        <option data-filename="pages/Workflow" data-linenumber="427" data-visual-selector-id="pages/Workflow427" value="Other">⋯ Other</option>
+                    </select>
+                </div>
+                <div data-filename="pages/Workflow" data-linenumber="430" data-visual-selector-id="pages/Workflow430" class="form-group">
+                    <label data-filename="pages/Workflow" data-linenumber="431" data-visual-selector-id="pages/Workflow431" class="form-label">
+                        <svg data-filename="pages/Workflow" data-linenumber="432" data-visual-selector-id="pages/Workflow432" class="icon icon-small" viewBox="0 0 24 24"><path data-filename='pages/Workflow' data-linenumber='432' data-visual-selector-id='pages/Workflow432' d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline data-filename='pages/Workflow' data-linenumber='432' data-visual-selector-id='pages/Workflow432' points="14 2 14 8 20 8"></polyline><line data-filename='pages/Workflow' data-linenumber='432' data-visual-selector-id='pages/Workflow432' x1="16" y1="13" x2="8" y2="13"></line><line data-filename='pages/Workflow' data-linenumber='432' data-visual-selector-id='pages/Workflow432' x1="16" y1="17" x2="8" y2="17"></line><polyline data-filename='pages/Workflow' data-linenumber='432' data-visual-selector-id='pages/Workflow432' points="10 9 9 9 8 9"></polyline></svg>
+                        Description
+                    </label>
+                    <textarea data-filename="pages/Workflow" data-linenumber="435" data-visual-selector-id="pages/Workflow435" class="form-textarea" id="activityDescription" placeholder="Add details about this activity..."></textarea> <!-- Added description textarea -->
+                </div>
+                <div data-filename="pages/Workflow" data-linenumber="437" data-visual-selector-id="pages/Workflow437" class="form-buttons">
+                    <button data-filename="pages/Workflow" data-linenumber="438" data-visual-selector-id="pages/Workflow438" type="button" class="btn-cancel" onclick="closeForm()">Cancel</button>
+                    <button data-filename="pages/Workflow" data-linenumber="439" data-visual-selector-id="pages/Workflow439" type="submit" class="btn-save">Save Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script data-filename="pages/Workflow" data-linenumber="445" data-visual-selector-id="pages/Workflow445">
+        let activities = JSON.parse(localStorage.getItem('beelzeflow_activities') || '[]');
+        let editingId = null;
+
+        const platformEmojis = { // New object for emojis
+            Personal: '👤',
+            Work: '🏢',
+            Fitness: '💪',
+            Learning: '📚',
+            Other: '⋯'
+        };
+
+        function saveActivities() {
+            localStorage.setItem('beelzeflow_activities', JSON.stringify(activities));
+            renderActivities();
+        }
+
+        function toggleExpand(id) { // New function to expand/collapse activity card
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (card) {
+                card.classList.toggle('expanded');
+            }
+        }
+
+        function renderActivities() {
+            const list = document.getElementById('activitiesList');
+            const completed = activities.filter(a => a.completed).length;
+            const total = activities.length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('performancePercent').textContent = percent + '%';
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('progressFill').style.width = percent + '%';
+
+            if (activities.length === 0) {
+                list.innerHTML = '<div data-filename="pages/Workflow" data-linenumber="481" data-visual-selector-id="pages/Workflow481" class="empty-state">No activities yet. Click "Add Activity" to get started!</div>';
+                return;
+            }
+
+            list.innerHTML = activities.map(activity => `
+                <div data-filename="pages/Workflow" data-linenumber="486" data-visual-selector-id="pages/Workflow486" class="activity-card ${activity.completed ? 'completed' : ''}" data-id="${activity.id}" onclick="toggleExpand('${activity.id}')">
+                    <div data-filename="pages/Workflow" data-linenumber="487" data-visual-selector-id="pages/Workflow487" class="activity-header">
+                        <div data-filename="pages/Workflow" data-linenumber="488" data-visual-selector-id="pages/Workflow488" class="activity-name">${activity.name}</div>
+                        <svg data-filename="pages/Workflow" data-linenumber="489" data-visual-selector-id="pages/Workflow489" class="icon chevron" viewBox="0 0 24 24" style="color: #6b7280;">
+                            <polyline data-filename="pages/Workflow" data-linenumber="490" data-visual-selector-id="pages/Workflow490" points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div data-filename="pages/Workflow" data-linenumber="493" data-visual-selector-id="pages/Workflow493" class="activity-time">
+                        <svg data-filename="pages/Workflow" data-linenumber="494" data-visual-selector-id="pages/Workflow494" class="icon" viewBox="0 0 24 24" style="margin-right: 6px; width: 16px; height: 16px;">
+                            <circle data-filename="pages/Workflow" data-linenumber="495" data-visual-selector-id="pages/Workflow495" cx="12" cy="12" r="10"></circle>
+                            <polyline data-filename="pages/Workflow" data-linenumber="496" data-visual-selector-id="pages/Workflow496" points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        ${activity.time}
+                    </div>
+                    <div data-filename="pages/Workflow" data-linenumber="500" data-visual-selector-id="pages/Workflow500" class="activity-platform">${platformEmojis[activity.platform] || ''} ${activity.platform}</div>
+                    ${activity.description ? `<div data-filename="pages/Workflow" data-linenumber="501" data-visual-selector-id="pages/Workflow501" class="activity-description">${activity.description}</div>` : ''} <!-- Conditionally render description -->
+                    <div data-filename="pages/Workflow" data-linenumber="502" data-visual-selector-id="pages/Workflow502" class="activity-actions" onclick="event.stopPropagation()"> <!-- Added stopPropagation to prevent card expansion -->
+                        <button data-filename="pages/Workflow" data-linenumber="503" data-visual-selector-id="pages/Workflow503" class="btn-action" onclick="toggleComplete('${activity.id}')" title="Complete">
+                            <svg data-filename="pages/Workflow" data-linenumber="504" data-visual-selector-id="pages/Workflow504" class="icon" viewBox="0 0 24 24" style="color: ${activity.completed ? '#10b981' : '#6b7280'};">
+                                <polyline data-filename="pages/Workflow" data-linenumber="505" data-visual-selector-id="pages/Workflow505" points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </button>
+                        <button data-filename="pages/Workflow" data-linenumber="508" data-visual-selector-id="pages/Workflow508" class="btn-action" onclick="editActivity('${activity.id}')" title="Edit">
+                            <svg data-filename="pages/Workflow" data-linenumber="509" data-visual-selector-id="pages/Workflow509" class="icon" viewBox="0 0 24 24" style="color: #3b82f6;">
+                                <path data-filename="pages/Workflow" data-linenumber="510" data-visual-selector-id="pages/Workflow510" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path data-filename="pages/Workflow" data-linenumber="511" data-visual-selector-id="pages/Workflow511" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button data-filename="pages/Workflow" data-linenumber="514" data-visual-selector-id="pages/Workflow514" class="btn-action" onclick="deleteActivity('${activity.id}')" title="Delete">
+                            <svg data-filename="pages/Workflow" data-linenumber="515" data-visual-selector-id="pages/Workflow515" class="icon" viewBox="0 0 24 24" style="color: #ef4444;">
+                                <polyline data-filename="pages/Workflow" data-linenumber="516" data-visual-selector-id="pages/Workflow516" points="3 6 5 6 21 6"></polyline>
+                                <path data-filename="pages/Workflow" data-linenumber="517" data-visual-selector-id="pages/Workflow517" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddForm() {
+            editingId = null;
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityTime').value = '09:00'; // Set a default time
+            document.getElementById('activityModal').classList.add('active');
+        }
+
+        function closeForm() {
+            document.getElementById('activityModal').classList.remove('active');
+            editingId = null;
+        }
+
+        function toggleComplete(id) {
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                activity.completed = !activity.completed;
+                saveActivities();
+            }
+        }
+
+        function editActivity(id) {
+            const activity = activities.find(a => a.id === id);
+            if (activity) {
+                editingId = id;
+                document.getElementById('activityName').value = activity.name;
+                document.getElementById('activityTime').value = activity.time;
+                document.getElementById('activityPlatform').value = activity.platform;
+                document.getElementById('activityDescription').value = activity.description || ''; // Populate description
+                document.getElementById('activityModal').classList.add('active');
+            }
+        }
+
+        function deleteActivity(id) {
+            if (confirm('Are you sure you want to delete this activity?')) {
+                activities = activities.filter(a => a.id !== id);
+                saveActivities();
+            }
+        }
+
+        document.getElementById('activityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('activityName').value;
+            const time = document.getElementById('activityTime').value;
+            const platform = document.getElementById('activityPlatform').value;
+            const description = document.getElementById('activityDescription').value; // Get description
+
+            if (editingId) {
+                const activity = activities.find(a => a.id === editingId);
+                if (activity) {
+                    activity.name = name;
+                    activity.time = time;
+                    activity.platform = platform;
+                    activity.description = description; // Update description
+                }
+            } else {
+                activities.push({
+                    id: Date.now().toString(),
+                    name,
+                    time,
+                    platform,
+                    description, // Save description
+                    completed: false
+                });
+            }
+
+            saveActivities();
+            closeForm();
+        });
+
+        renderActivities();
+    </script>
+</body>
+</html>
