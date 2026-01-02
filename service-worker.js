@@ -3,8 +3,8 @@ const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./blue-letter-made-wood.jpg",
+  "./blue-letter-made-wood.jpg"
 ];
 
 self.addEventListener("install", event => {
